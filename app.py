@@ -1,23 +1,20 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
-import uuid
+from flask import Flask, render_template, send_from_directory
 import os
 
 app = Flask(__name__, static_folder='static')
 
-# Configuration de la base de données
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'votre_clé_secrète_ici')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///survey.db')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# Initialisation de SQLAlchemy
-db = SQLAlchemy(app)
-
-# Route pour servir les fichiers statiques
+# Route spécifique pour servir les images
 @app.route('/static/images/<path:filename>')
 def serve_image(filename):
-    return send_from_directory('static/images', filename)
+    app.logger.info(f'Attempting to serve image: {filename}')
+    try:
+        return send_from_directory('static/images', filename)
+    except Exception as e:
+        app.logger.error(f'Error serving image {filename}: {str(e)}')
+        return 'Image not found', 404
+
+# Assurez-vous que le dossier static/images existe
+os.makedirs('static/images', exist_ok=True)
 
 # Liste des pays africains
 AFRICAN_COUNTRIES = [
@@ -157,6 +154,19 @@ def health_check():
         return 'OK', 200
     except Exception as e:
         return str(e), 500
+
+@app.route('/status')
+def status():
+    return {
+        'status': 'healthy',
+        'timestamp': time.time(),
+        'db_connected': db.engine.pool.status()
+    }
+
+@app.errorhandler(404)
+def handle_404(e):
+    app.logger.error(f'File not found: {request.path}')
+    return 'File not found', 404
 
 if __name__ == '__main__':
     with app.app_context():
