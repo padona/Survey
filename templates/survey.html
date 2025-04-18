@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Utilisation des Données Spatiales en Afrique dans le monde entrepreneuriale</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <style>
+        :root {
+            --primary-color:rgb(19, 172, 128);
+            --secondary-color: #6c757d;
+            --accent-color: #198754;
+        }
+        
+        body {
+            background-color:rgb(226, 247, 241);
+            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .header-logos {
+            display: flex;
+            justify-content: center;  /* Centre le logo horizontalement */
+            align-items: center;
+            padding: 1rem;
+            background: white;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        .logo {
+            height: 80px;
+            object-fit: contain;
+            margin: 0 15px;
+        }
+
+        .survey-container {
+            max-width: 1200px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin: 2rem auto;
+        }
+
+        .intro-section {
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            animation: fadeIn 1s ease-in;
+        }
+
+        .key-points {
+            background: rgba(255,255,255,0.1);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .key-points li {
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: var(--accent-color);
+            transition: width 0.3s ease;
+            z-index: 1000;
+        }
+
+        .section-card {
+            border: none;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .section-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+        #map {
+            height: 300px;
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        .location-btn {
+            margin-bottom: 1rem;
+        }
+        /* Style pour les champs obligatoires */
+        .required::after {
+            content: " *";
+            color: red;
+            font-weight: bold;
+            margin-left: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-indicator" id="progressBar"></div>
+    
+    <header class="header-logos">
+        <img src="{{ url_for('static', filename='images/geostrat-logo.png') }}" alt="Geostrat Logo" class="logo">
+    </header>
+
+    <div class="container survey-container">
+        <div class="intro-section">
+            <h1 class="text-center mb-4">Étude sur l'Utilisation des Données Spatiales en Afrique</h1>
+            
+            <p class="lead">
+                <a href="https://www.linkedin.com/company/geostratdrc/?viewAsMember=true" target="_blank" class="text-white fw-bold">GeostratDRC</a> mène cette première étude approfondie sur l'utilisation des technologies géospatiales par les entreprises en Afrique. Cette étude se concentre particulièrement sur l'impact de ces technologies dans le développement durable, Urbanisme/Construction, Logistique/Transport,la gestion des ressources naturelles et l'innovation technologique au sein du secteur privé africain.
+            </p>
+
+            <div class="key-points">
+                <h3>Objectifs de l'étude :</h3>
+                <ul>
+                    <li>Cartographier l'écosystème des entreprises utilisatrices de données spatiales en Afrique</li>
+                    <li>Identifier les solutions innovantes et les cas d'usage développés par les entreprises africaines</li>
+                    <li>Évaluer les besoins des entreprises en termes de formation, ressources et capacités géospatiales</li>
+                    <li>Créer un réseau d'entreprises africaines innovantes dans le domaine spatial</li>
+                </ul>
+            </div>
+
+            <p class="mt-4">
+                <strong>Votre contribution est essentielle !</strong> En tant qu'entreprise utilisant des données spatiales, 
+                votre participation permettra à Geostrat de dresser un panorama complet du secteur privé et de partager 
+                les meilleures pratiques entrepreneuriales avec l'ensemble de la communauté africaine.
+            </p>
+        </div>
+
+        <form method="POST" class="needs-validation" novalidate>
+            <!-- Section 1: Profil du répondant -->
+            <div class="section-card">
+                <h2 class="section-title">1. Profil du répondant</h2>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="name" class="form-label required">Nom</label>
+                        <input type="text" class="form-control" name="name" id="name" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="email" class="form-label required">Email</label>
+                        <input type="email" class="form-control" name="email" id="email" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="country" class="form-label required">Pays d'activité principale</label>
+                    <select class="form-select" name="country" id="country" required>
+                        <option value="">Sélectionnez un pays</option>
+                        {% for country in countries %}
+                        <option value="{{ country }}">{{ country }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="company_name" class="form-label required">Nom de l'entreprise/organisation</label>
+                    <input type="text" class="form-control" name="company_name" id="company_name" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="sector" class="form-label required">Secteur d'activité</label>
+                    <select class="form-select" name="sector" id="sector" required>
+                        <option value="">Sélectionnez un secteur</option>
+                        <option value="agriculture">🌱 Agriculture</option>
+                        <option value="logistique">🚚 Logistique/Transport</option>
+                        <option value="urbanisme">🏗️ Urbanisme/Construction</option>
+                        <option value="mines">⛏️ Mines/Énergie</option>
+                        <option value="sante">🏥 Santé</option>
+                        <option value="environnement">🌍 Environnement</option>
+                        <option value="tic">📱 TIC/Télécoms</option>
+                        <option value="autre">Autre</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Votre localisation</label>
+                    <div id="map"></div>
+                    <button type="button" class="btn btn-secondary location-btn" id="getLocation">
+                        📍 Partager ma position
+                    </button>
+                    <div class="form-text">Cliquez sur le bouton pour partager votre position ou cliquez directement sur la carte</div>
+                    
+                    <!-- Champs cachés pour stocker les coordonnées -->
+                    <input type="hidden" name="latitude" id="latitude">
+                    <input type="hidden" name="longitude" id="longitude">
+                </div>
+
+                <div class="mb-3">
+                    <label for="organization_type" class="form-label required">Type d'organisation</label>
+                    <select class="form-select" name="organization_type" id="organization_type" required>
+                        <option value="">Sélectionnez un type</option>
+                        <option value="private">Entreprise privée</option>
+                        <option value="public">Institution publique</option>
+                        <option value="ngo">ONG</option>
+                        <option value="research">Institution de recherche</option>
+                        <option value="startup">Startup</option>
+                        <option value="cooperative">Coopérative</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="years_experience" class="form-label required">Expérience en données spatiales</label>
+                    <select class="form-select" name="years_experience" id="years_experience" required>
+                        <option value="">Sélectionnez une durée</option>
+                        <option value="0-2">0-2 ans</option>
+                        <option value="3-5">3-5 ans</option>
+                        <option value="6-10">6-10 ans</option>
+                        <option value="10+">Plus de 10 ans</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Section 2: Informations sur l'entreprise -->
+            <div class="section-card">
+                <h2 class="section-title">2. Informations sur l'entreprise</h2>
+                
+                <div class="mb-3">
+                    <label for="company_type" class="form-label required">Type d'entreprise</label>
+                    <select class="form-select" name="company_type" id="company_type" required>
+                        <option value="">Sélectionnez un type</option>
+                        <option value="startup">Startup</option>
+                        <option value="pme">PME</option>
+                        <option value="grande_entreprise">Grande entreprise</option>
+                        <option value="ong">ONG</option>
+                        <option value="public">Organisation publique</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label required">Types de données spatiales utilisées</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="spatial_data_types" value="satellite" id="satellite">
+                        <label class="form-check-label" for="satellite">Imagerie satellite</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="spatial_data_types" value="drone" id="drone">
+                        <label class="form-check-label" for="drone">Images de drones</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="spatial_data_types" value="gps" id="gps">
+                        <label class="form-check-label" for="gps">Données GPS</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="spatial_data_types" value="cartographie" id="cartographie">
+                        <label class="form-check-label" for="cartographie">Cartographie numérique</label>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label required">Domaines d'application</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="application_domains" value="agriculture_precision" id="agriculture_precision">
+                        <label class="form-check-label" for="agriculture_precision">Agriculture de précision</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="application_domains" value="urbanisme" id="urbanisme">
+                        <label class="form-check-label" for="urbanisme">Planification urbaine</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="application_domains" value="environnement" id="environnement">
+                        <label class="form-check-label" for="environnement">Surveillance environnementale</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="application_domains" value="catastrophes" id="catastrophes">
+                        <label class="form-check-label" for="catastrophes">Gestion des catastrophes</label>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="annual_budget" class="form-label required">Budget annuel dédié aux données spatiales</label>
+                    <select class="form-select" name="annual_budget" id="annual_budget" required>
+                        <option value="">Sélectionnez une tranche</option>
+                        <option value="moins_5000">Moins de 5000 €</option>
+                        <option value="5000_20000">5000 € - 20000 €</option>
+                        <option value="20000_50000">20000 € - 50000 €</option>
+                        <option value="plus_50000">Plus de 50000 €</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label required">Outils logiciels utilisés</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="software_tools" value="qgis" id="qgis">
+                        <label class="form-check-label" for="qgis">QGIS/ArcGIS</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="software_tools" value="gee" id="gee">
+                        <label class="form-check-label" for="gee">Google Earth Engine</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="software_tools" value="python_r" id="python_r">
+                        <label class="form-check-label" for="python_r">Python/R (GeoPandas, GDAL)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="software_tools" value="cloud" id="cloud">
+                        <label class="form-check-label" for="cloud">Plateformes cloud (AWS, Azure)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="software_tools" value="autre" id="autre_logiciel">
+                        <label class="form-check-label" for="autre_logiciel">Autre</label>
+                        <input type="text" class="form-control mt-2" name="software_tools_other" id="software_tools_other" placeholder="Précisez">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="data_frequency" class="form-label required">Fréquence d'acquisition des données</label>
+                    <select class="form-select" name="data_frequency" id="data_frequency" required>
+                        <option value="">Sélectionnez une fréquence</option>
+                        <option value="daily">Quotidienne</option>
+                        <option value="weekly">Hebdomadaire</option>
+                        <option value="monthly">Mensuelle</option>
+                        <option value="quarterly">Trimestrielle</option>
+                        <option value="yearly">Annuelle</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="data_storage" class="form-label required">Solution de stockage des données</label>
+                    <select class="form-select" name="data_storage" id="data_storage" required>
+                        <option value="">Sélectionnez une solution</option>
+                        <option value="local">Serveurs locaux</option>
+                        <option value="cloud">Cloud public (AWS, Azure, GCP)</option>
+                        <option value="hybrid">Solution hybride</option>
+                        <option value="external">Prestataire externe</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Section 3: Impact et défis -->
+            <div class="section-card">
+                <h2 class="section-title">3. Impact et défis</h2>
+
+                <div class="mb-3">
+                    <label for="benefits" class="form-label required">Principaux bénéfices observés</label>
+                    <textarea class="form-control" name="benefits" id="benefits" rows="3" required></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="obstacles" class="form-label required">Obstacles majeurs rencontrés</label>
+                    <textarea class="form-control" name="obstacles" id="obstacles" rows="3" required></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label required">Avantages mesurés</label>
+                    
+                    <div class="mb-2">
+                        <label for="cost_reduction" class="form-label">Réduction des coûts opérationnels</label>
+                        <input type="range" class="form-range" min="1" max="5" name="cost_reduction" id="cost_reduction" required>
+                        <div class="d-flex justify-content-between">
+                            <span>Faible</span>
+                            <span>Élevé</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="decision_improvement" class="form-label">Amélioration de la prise de décision</label>
+                        <input type="range" class="form-range" min="1" max="5" name="decision_improvement" id="decision_improvement" required>
+                        <div class="d-flex justify-content-between">
+                            <span>Faible</span>
+                            <span>Élevé</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="compliance" class="form-label">Conformité aux normes (ex : RSE)</label>
+                        <input type="range" class="form-range" min="1" max="5" name="compliance" id="compliance" required>
+                        <div class="d-flex justify-content-between">
+                            <span>Faible</span>
+                            <span>Élevé</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="new_services" class="form-label">Création de nouveaux services</label>
+                        <input type="range" class="form-range" min="1" max="5" name="new_services" id="new_services" required>
+                        <div class="d-flex justify-content-between">
+                            <span>Faible</span>
+                            <span>Élevé</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="success_story" class="form-label required">Exemple concret de ROI exceptionnel</label>
+                    <textarea class="form-control" name="success_story" id="success_story" rows="3" 
+                        placeholder="Ex : Grâce aux drones, notre coopérative a réduit les pertes post-récolte de 35 % au Niger." required></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label required">Adaptation low-tech</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="low_tech_adaptation" value="true" id="low_tech_yes" required>
+                        <label class="form-check-label" for="low_tech_yes">Oui (ex : interface simplifiée pour zones rurales)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="low_tech_adaptation" value="false" id="low_tech_no" required>
+                        <label class="form-check-label" for="low_tech_no">Non</label>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="data_quality_management" class="form-label required">Gestion de la qualité des données</label>
+                    <select class="form-select" name="data_quality_management" id="data_quality_management" required>
+                        <option value="">Sélectionnez une option</option>
+                        <option value="procedures_strictes">Procédures strictes</option>
+                        <option value="controles_reguliers">Contrôles réguliers</option>
+                        <option value="pas_de_procedure">Pas de procédure formelle</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="data_sharing" class="form-label required">Politique de partage des données</label>
+                    <select class="form-select" name="data_sharing" id="data_sharing" required>
+                        <option value="">Sélectionnez une politique</option>
+                        <option value="open">Données ouvertes</option>
+                        <option value="restricted">Partage restreint</option>
+                        <option value="commercial">Commercialisation</option>
+                        <option value="internal">Usage interne uniquement</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Section 4: Besoins et perspectives -->
+            <div class="section-card">
+                <h2 class="section-title">4. Besoins et perspectives</h2>
+
+                <div class="mb-3">
+                    <label class="form-label required">Support souhaité</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="desired_support" value="formation" id="formation">
+                        <label class="form-check-label" for="formation">Formation technique</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="desired_support" value="financement" id="financement">
+                        <label class="form-check-label" for="financement">Accès au financement</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="desired_support" value="reseau" id="reseau">
+                        <label class="form-check-label" for="reseau">Mise en réseau</label>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="future_plans" class="form-label required">Plans d'expansion</label>
+                    <select class="form-select" name="future_plans" id="future_plans" required>
+                        <option value="">Sélectionnez une option</option>
+                        <option value="expansion">Expansion prévue</option>
+                        <option value="maintien">Maintien du niveau actuel</option>
+                        <option value="reduction">Réduction prévue</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="internet_access" class="form-label required">Qualité de l'accès Internet</label>
+                    <select class="form-select" name="internet_access" id="internet_access" required>
+                        <option value="">Sélectionnez une option</option>
+                        <option value="excellent">Excellent</option>
+                        <option value="bon">Bon</option>
+                        <option value="moyen">Moyen</option>
+                        <option value="faible">Faible</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label required">Impact d'un accès gratuit aux données</label>
+                    <select class="form-select" name="free_data_impact" id="free_data_impact" required>
+                        <option value="">Sélectionnez l'impact principal</option>
+                        <option value="cost_reduction">🤑 Réduction des coûts >30 %</option>
+                        <option value="new_markets">🚀 Nouveaux marchés</option>
+                        <option value="rd_acceleration">📈 R&D accélérée</option>
+                        <option value="none">Aucun</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="mobile_usage" class="form-label required">Utilisation d'applications mobiles</label>
+                    <select class="form-select" name="mobile_usage" id="mobile_usage" required>
+                        <option value="">Sélectionnez une option</option>
+                        <option value="essential">Essentielle à l'activité</option>
+                        <option value="complementary">Complémentaire</option>
+                        <option value="planned">Planifiée</option>
+                        <option value="none">Aucune utilisation</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="local_expertise" class="form-label required">Disponibilité d'expertise locale</label>
+                    <select class="form-select" name="local_expertise" id="local_expertise" required>
+                        <option value="">Évaluez la disponibilité</option>
+                        <option value="sufficient">Suffisante</option>
+                        <option value="limited">Limitée</option>
+                        <option value="very_limited">Très limitée</option>
+                        <option value="none">Inexistante</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Section 5: Innovation -->
+            <div class="section-card">
+                <h2 class="section-title">5. Innovation</h2>
+
+                <div class="mb-3">
+                    <label for="ai_ml_usage" class="form-label required">Utilisation de l'IA/ML</label>
+                    <select class="form-select" name="ai_ml_usage" id="ai_ml_usage" required>
+                        <option value="">Sélectionnez une option</option>
+                        <option value="utilisation_active">Utilisation active</option>
+                        <option value="phase_test">En phase de test</option>
+                        <option value="planifie">Planifié</option>
+                        <option value="pas_prevu">Pas prévu</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="low_cost_solutions" class="form-label">Solutions à faible coût développées</label>
+                    <textarea class="form-control" name="low_cost_solutions" id="low_cost_solutions" rows="3"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="tool_customization" class="form-label required">Personnalisation des outils</label>
+                    <select class="form-select" name="tool_customization" id="tool_customization" required>
+                        <option value="">Sélectionnez une option</option>
+                        <option value="forte">Forte personnalisation</option>
+                        <option value="moyenne">Personnalisation moyenne</option>
+                        <option value="faible">Faible personnalisation</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="blockchain_usage" class="form-label required">Utilisation de la blockchain</label>
+                    <select class="form-select" name="blockchain_usage" id="blockchain_usage" required>
+                        <option value="">Sélectionnez une option</option>
+                        <option value="active">En production</option>
+                        <option value="pilot">Projet pilote</option>
+                        <option value="planned">Planifiée</option>
+                        <option value="none">Non envisagée</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Section 5: Réseau & Partenariats -->
+            <div class="section-card">
+                <h2 class="section-title">5. Réseau & Partenariats</h2>
+
+                <div class="mb-3">
+                    <label class="form-label required">Collaborations actuelles</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="collaborations" value="universities" id="universities">
+                        <label class="form-check-label" for="universities">🎓 Universités africaines</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="collaborations" value="startups" id="startups">
+                        <label class="form-check-label" for="startups">🚀 Startups tech</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="collaborations" value="governments" id="governments">
+                        <label class="form-check-label" for="governments">🏛️ Gouvernements</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="collaborations" value="ngos" id="ngos">
+                        <label class="form-check-label" for="ngos">🌐 ONG internationales</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section finale: Validation -->
+            <div class="section-card">
+                <h2 class="section-title">Validation</h2>
+                
+                <div class="mb-3 drone-model-section" style="display: none;">
+                    <label for="drone_model" class="form-label">Modèle de drone utilisé</label>
+                    <select class="form-select" name="drone_model" id="drone_model">
+                        <option value="">Sélectionnez un modèle</option>
+                        <option value="dji_mavic">DJI Mavic</option>
+                        <option value="parrot_anafi">Parrot Anafi</option>
+                        <option value="autre">Autre</option>
+                    </select>
+                    <input type="text" class="form-control mt-2" name="drone_model_other" id="drone_model_other" 
+                        placeholder="Précisez le modèle" style="display: none;">
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="contact_permission" value="true" id="contact_permission">
+                        <label class="form-check-label" for="contact_permission">
+                            J'accepte d'être contacté pour des précisions
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-submit btn-primary btn-lg">
+                    Soumettre l'enquête
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Validation des formulaires Bootstrap
+        (function () {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+            Array.prototype.slice.call(forms).forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Afficher/masquer le champ de modèle de drone
+            const droneCheckbox = document.querySelector('#drone');
+            const droneModelSection = document.querySelector('.drone-model-section');
+            
+            droneCheckbox.addEventListener('change', function() {
+                droneModelSection.style.display = this.checked ? 'block' : 'none';
+            });
+
+            // Gérer le champ "Autre" pour le modèle de drone
+            const droneModelSelect = document.querySelector('#drone_model');
+            const droneModelOther = document.querySelector('#drone_model_other');
+            
+            droneModelSelect.addEventListener('change', function() {
+                droneModelOther.style.display = this.value === 'autre' ? 'block' : 'none';
+            });
+
+            // Gérer le champ "Autre" pour les outils logiciels
+            const autreLogicielCheckbox = document.querySelector('#autre_logiciel');
+            const softwareToolsOther = document.querySelector('#software_tools_other');
+            
+            autreLogicielCheckbox.addEventListener('change', function() {
+                softwareToolsOther.style.display = this.checked ? 'block' : 'none';
+            });
+        });
+    </script>
+    <script>
+        // Initialisation de la carte
+        var map = L.map('map').setView([0, 0], 2);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        var marker;
+
+        // Fonction pour mettre à jour la position sur la carte
+        function updateLocation(lat, lng) {
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lng;
+            
+            if (marker) {
+                map.removeLayer(marker);
+            }
+            
+            marker = L.marker([lat, lng]).addTo(map);
+            map.setView([lat, lng], 13);
+        }
+
+        // Gérer le clic sur la carte
+        map.on('click', function(e) {
+            updateLocation(e.latlng.lat, e.latlng.lng);
+        });
+
+        // Gérer le bouton de géolocalisation
+        document.getElementById('getLocation').addEventListener('click', function() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    updateLocation(position.coords.latitude, position.coords.longitude);
+                }, function(error) {
+                    alert("Erreur de géolocalisation: " + error.message);
+                });
+            } else {
+                alert("La géolocalisation n'est pas supportée par votre navigateur");
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Barre de progression
+            const progressBar = document.getElementById('progressBar');
+            const formSections = document.querySelectorAll('.section-card');
+            let currentProgress = 0;
+
+            window.addEventListener('scroll', () => {
+                const windowHeight = window.innerHeight;
+                const documentHeight = document.documentElement.scrollHeight - windowHeight;
+                const scrolled = window.scrollY;
+                
+                const progress = (scrolled / documentHeight) * 100;
+                progressBar.style.width = progress + '%';
+            });
+
+            // Animation des sections au scroll
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            formSections.forEach(section => {
+                section.style.opacity = '0';
+                section.style.transform = 'translateY(20px)';
+                section.style.transition = 'all 0.5s ease-out';
+                observer.observe(section);
+            });
+
+            // Validation en temps réel
+            const inputs = document.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    if (this.checkValidity()) {
+                        this.classList.add('is-valid');
+                        this.classList.remove('is-invalid');
+                    } else {
+                        this.classList.add('is-invalid');
+                        this.classList.remove('is-valid');
+                    }
+                });
+            });
+
+            // Sauvegarde automatique des réponses
+            const form = document.querySelector('form');
+            const saveProgress = () => {
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData);
+                localStorage.setItem('survey-progress', JSON.stringify(data));
+            };
+
+            form.addEventListener('change', saveProgress);
+
+            // Restauration des données sauvegardées
+            const savedData = localStorage.getItem('survey-progress');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                Object.entries(data).forEach(([name, value]) => {
+                    const input = form.querySelector(`[name="${name}"]`);
+                    if (input) {
+                        input.value = value;
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
