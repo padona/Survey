@@ -7,8 +7,8 @@ import os
 app = Flask(__name__, static_folder='static')
 
 # Configuration de la base de données
-app.config['SECRET_KEY'] = 'votre_clé_secrète_ici'  # Nécessaire pour flash messages
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///survey.db'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'votre_clé_secrète_ici')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///survey.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialisation de SQLAlchemy
@@ -151,13 +151,20 @@ def view_map():
 
 @app.route('/healthz')
 def health_check():
-    return 'OK', 200
+    try:
+        # Test la connexion à la base de données
+        db.session.execute('SELECT 1')
+        return 'OK', 200
+    except Exception as e:
+        return str(e), 500
 
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     port = int(os.environ.get('PORT', 10000))
     app.run(host='0.0.0.0', port=port)
+
+
 
 
 
