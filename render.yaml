@@ -9,3 +9,12 @@ services:
         value: 3.9.0
       - key: PORT
         value: 10000
+    healthCheckPath: /healthz
+    autoDeploy: true
+    buildFilter:
+      paths:
+        - "*.py"
+        - requirements.txt
+        - render.yaml
+        - static/*
+        - templates/*
